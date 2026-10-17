@@ -1,0 +1,679 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#14102a">
+  <meta name="description" content="Amino Cure Drug Stock - نظام مبسط لإدارة مخزون الصيدلية">
+
+  <title>Amino Cure Drug Stock</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+  <script src="guide.js"></script>
+
+  <style>
+    /* أيقونات SVG محلية لا تحتاج إلى إنترنت */
+    .ac-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      line-height: 1;
+    }
+
+    .ac-icon svg {
+      display: block;
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 24px;
+      color: #b8a5f6;
+    }
+
+    .nav-icon svg {
+      width: 21px;
+      height: 21px;
+    }
+
+    .stat-icon,
+    .quick-icon,
+    .empty-icon,
+    .placeholder-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon svg,
+    .quick-icon svg,
+    .empty-icon svg,
+    .placeholder-icon svg {
+      width: 23px;
+      height: 23px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .quick-arrow svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .menu-toggle svg {
+      width: 22px;
+      height: 22px;
+      vertical-align: middle;
+    }
+
+    .theme-toggle svg {
+      width: 19px;
+      height: 19px;
+      vertical-align: middle;
+    }
+
+    .text-button {
+      gap: 7px;
+    }
+
+    .text-button svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+    }
+
+    .profile-icon svg {
+      width: 23px;
+      height: 23px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ac-icon,
+      .nav-icon,
+      .stat-icon,
+      .quick-icon {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- القائمة الجانبية -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="brand">
+        <div class="brand-logo">AC</div>
+        <div>
+          <h1>Amino Cure</h1>
+          <p>Drug Stock</p>
+        </div>
+      </div>
+
+      <div class="sidebar-label">القائمة الرئيسية</div>
+
+      <nav class="navigation" aria-label="القائمة الرئيسية">
+
+        <button class="nav-link active" data-page="dashboard" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+          </span>
+          <span>لوحة التحكم</span>
+        </button>
+
+        <button class="nav-link" data-page="inventory" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7 12 3l8 4-8 4-8-4Z"/>
+              <path d="M4 12l8 4 8-4"/>
+              <path d="M4 17l8 4 8-4"/>
+              <path d="M12 11v10"/>
+            </svg>
+          </span>
+          <span>المخزون والأصناف</span>
+        </button>
+
+        <button class="nav-link" data-page="movements" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 7h13l-4-4"/>
+              <path d="M20 7l-4 4"/>
+              <path d="M17 17H4l4 4"/>
+              <path d="M4 17l4-4"/>
+            </svg>
+          </span>
+          <span>حركات المخزون</span>
+        </button>
+
+        <button class="nav-link" data-page="expiry" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 2"/>
+              <path d="M8 2h8"/>
+            </svg>
+          </span>
+          <span>الصلاحية والتنبيهات</span>
+        </button>
+
+        <button class="nav-link" data-page="stocktaking" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="3" width="16" height="18" rx="2"/>
+              <path d="m8 9 1.5 1.5L12 8"/>
+              <path d="M14 9h2"/>
+              <path d="m8 15 1.5 1.5L12 14"/>
+              <path d="M14 15h2"/>
+            </svg>
+          </span>
+          <span>الجرد الفعلي</span>
+        </button>
+
+        <button class="nav-link" data-page="reports" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 20V10"/>
+              <path d="M10 20V4"/>
+              <path d="M16 20v-7"/>
+              <path d="M22 20H2"/>
+              <path d="M14 8l3-3 3 2"/>
+            </svg>
+          </span>
+          <span>التقارير</span>
+        </button>
+
+        <button class="nav-link" data-page="backup" type="button">
+          <span class="nav-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 16V3"/>
+              <path d="m7 8 5-5 5 5"/>
+              <path d="M5 14v6h14v-6"/>
+            </svg>
+          </span>
+          <span>النسخ الاحتياطي</span>
+        </button>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-note">
+          <span class="status-dot"></span>
+          <div>
+            <strong>نسخة تجريبية</strong>
+            <p>بيانات للعرض والاختبار فقط</p>
+          </div>
+        </div>
+
+        <p class="brand-footer">Amino Cure © 2026</p>
+      </div>
+
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="main-content">
+
+      <header class="topbar">
+        <div class="topbar-title">
+
+          <button
+            class="menu-toggle"
+            id="menuToggle"
+            type="button"
+            aria-label="فتح القائمة"
+            aria-expanded="false"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round">
+              <path d="M4 6h16"/>
+              <path d="M4 12h16"/>
+              <path d="M4 18h16"/>
+            </svg>
+          </button>
+
+          <div>
+            <p class="eyebrow">PHARMACY MANAGEMENT</p>
+            <h2 id="pageHeading">لوحة التحكم</h2>
+          </div>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button">
+          <span id="themeIcon" aria-hidden="true">☀</span>
+          <span id="themeText">الوضع الفاتح</span>
+        </button>
+      </header>
+
+      <div class="demo-banner">
+        <span class="ac-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 11v5"/>
+            <path d="M12 7h.01"/>
+          </svg>
+        </span>
+        <p>
+          أنت تستخدم النسخة التجريبية. الأرقام المعروضة توضيحية
+          وليست بيانات مخزون حقيقية.
+        </p>
+      </div>
+
+      <!-- الرئيسية -->
+      <section class="page-section active" id="page-dashboard">
+
+        <div class="profile-orbit">
+
+          <div class="profile-icon icon-brain" aria-label="المعرفة">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 18V5"/>
+              <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/>
+              <path d="M17.6 6.5a3 3 0 0 0-5.6-1.5 3 3 0 0 0-5.6 1.5A3.5 3.5 0 0 0 5 13a3.5 3.5 0 0 0 3 5h8a3.5 3.5 0 0 0 3-5 3.5 3.5 0 0 0-1.4-6.5Z"/>
+            </svg>
+          </div>
+
+          <div class="profile-icon icon-pill" aria-label="الصيدلة">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m10.5 20.5 10-10a5.66 5.66 0 0 0-8-8l-10 10a5.66 5.66 0 0 0 8 8Z"/>
+              <path d="m8.5 8.5 7 7"/>
+            </svg>
+          </div>
+
+          <div class="profile-icon icon-sparkles" aria-label="الإبداع">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-2-5.8L4 11l6-2.2L12 3Z"/>
+              <path d="m19 14 1.2 2.8L23 18l-2.8 1.2L19 22l-1.2-2.8L15 18l2.8-1.2L19 14Z"/>
+            </svg>
+          </div>
+
+          <div class="profile-photo">
+            <img src="./ameen.png" alt="أمين تاج الدين عثمان">
+          </div>
+
+        </div>
+
+        <div class="welcome-row">
+          <div>
+            <h3>أهلاً بيك في Amino Cure 💜</h3>
+            <p>نظّم مخزون صيدليتك، وتابع التفاصيل من مكان واحد.</p>
+          </div>
+          <span class="date-chip" id="currentDate">تاريخ اليوم</span>
+        </div>
+
+        <!-- بطاقات الإحصائيات -->
+        <div class="stats-grid">
+
+          <article class="stat-card purple-stat">
+            <div class="stat-top">
+              <span>إجمالي الأصناف</span>
+              <span class="stat-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7 12 3l8 4-8 4-8-4Z"/>
+                  <path d="M4 12l8 4 8-4"/>
+                  <path d="M4 17l8 4 8-4"/>
+                </svg>
+              </span>
+            </div>
+            <strong>0</strong>
+            <p>صنف مسجل في النظام</p>
+          </article>
+
+          <article class="stat-card green-stat">
+            <div class="stat-top">
+              <span>وحدات المخزون</span>
+              <span class="stat-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="8" height="8" rx="1.5"/>
+                  <rect x="13" y="3" width="8" height="8" rx="1.5"/>
+                  <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+                  <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+                </svg>
+              </span>
+            </div>
+            <strong>0</strong>
+            <p>إجمالي الكميات المسجلة</p>
+          </article>
+
+          <article class="stat-card orange-stat">
+            <div class="stat-top">
+              <span>مخزون منخفض</span>
+              <span class="stat-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="m12 3 10 18H2L12 3Z"/>
+                  <path d="M12 9v5"/>
+                  <path d="M12 17h.01"/>
+                </svg>
+              </span>
+            </div>
+            <strong>0</strong>
+            <p>أصناف تحتاج إلى مراجعة</p>
+          </article>
+
+          <article class="stat-card red-stat">
+            <div class="stat-top">
+              <span>تنبيهات الصلاحية</span>
+              <span class="stat-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 7v5l3 2"/>
+                </svg>
+              </span>
+            </div>
+            <strong>0</strong>
+            <p>تشغيلات تحتاج إلى مراجعة</p>
+          </article>
+
+        </div>
+
+        <!-- الإجراءات السريعة -->
+        <div class="section-heading">
+          <div>
+            <h3>الإجراءات السريعة</h3>
+            <p>اختصارات للمهام اليومية</p>
+          </div>
+        </div>
+
+        <div class="quick-grid">
+
+          <button class="quick-card" data-page="inventory" type="button">
+            <span class="quick-icon purple-bg ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+              </svg>
+            </span>
+            <strong>إدارة الأصناف</strong>
+            <small>عرض الأصناف وإضافتها</small>
+            <span class="quick-arrow ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="m13 6 6 6-6 6"/>
+              </svg>
+            </span>
+          </button>
+
+          <button class="quick-card" data-page="movements" type="button">
+            <span class="quick-icon green-bg ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 7h13l-4-4"/>
+                <path d="M20 7l-4 4"/>
+                <path d="M17 17H4l4 4"/>
+                <path d="M4 17l4-4"/>
+              </svg>
+            </span>
+            <strong>حركات المخزون</strong>
+            <small>متابعة الوارد والمنصرف</small>
+            <span class="quick-arrow ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="m13 6 6 6-6 6"/>
+              </svg>
+            </span>
+          </button>
+
+          <button class="quick-card" data-page="expiry" type="button">
+            <span class="quick-icon orange-bg ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3 2"/>
+              </svg>
+            </span>
+            <strong>مراجعة الصلاحية</strong>
+            <small>متابعة تواريخ التشغيلات</small>
+            <span class="quick-arrow ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="m13 6 6 6-6 6"/>
+              </svg>
+            </span>
+          </button>
+
+          <button class="quick-card" data-page="stocktaking" type="button">
+            <span class="quick-icon blue-bg ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="4" y="3" width="16" height="18" rx="2"/>
+                <path d="m8 9 2 2 4-4"/>
+                <path d="M15 10h2"/>
+                <path d="m8 15 2 2 4-4"/>
+              </svg>
+            </span>
+            <strong>الجرد الفعلي</strong>
+            <small>مقارنة الكميات المسجلة</small>
+            <span class="quick-arrow ac-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="m13 6 6 6-6 6"/>
+              </svg>
+            </span>
+          </button>
+
+        </div>
+
+        <!-- ملخصات الرئيسية -->
+        <div class="content-grid">
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h3>آخر حركات المخزون</h3>
+                <p>ملخص الحركات المسجلة</p>
+              </div>
+              <button class="text-button" data-page="movements" type="button">
+                عرض الكل
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                  <path d="M5 12h14"/>
+                  <path d="m13 6 6 6-6 6"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="empty-state">
+              <span class="empty-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 7h13l-4-4"/>
+                  <path d="M20 7l-4 4"/>
+                  <path d="M17 17H4l4 4"/>
+                  <path d="M4 17l4-4"/>
+                </svg>
+              </span>
+              <strong>لا توجد حركات مسجلة</strong>
+              <p>ستظهر هنا حركات المخزون بعد تفعيل نظام التسجيل.</p>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <h3>حالة المخزون</h3>
+                <p>ملخص توضيحي</p>
+              </div>
+            </div>
+
+            <div class="empty-state compact-empty">
+              <span class="empty-icon ac-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 20V10"/>
+                  <path d="M10 20V4"/>
+                  <path d="M16 20v-7"/>
+                  <path d="M22 20H2"/>
+                </svg>
+              </span>
+              <strong>بانتظار بيانات المخزون</strong>
+              <p>ستظهر ملخصات المخزون بعد إضافة الأصناف.</p>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- المخزون -->
+      <section class="page-section" id="page-inventory" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>المخزون والأصناف</h3>
+            <p>إدارة بيانات المنتجات والكميات والتشغيلات.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7 12 3l8 4-8 4-8-4Z"/>
+              <path d="M4 12l8 4 8-4"/>
+              <path d="M4 17l8 4 8-4"/>
+            </svg>
+          </span>
+          <h3>إدارة الأصناف</h3>
+          <p>سيُبنى هنا سجل الأصناف والبحث والإضافة والتعديل.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <!-- الحركات -->
+      <section class="page-section" id="page-movements" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>حركات المخزون</h3>
+            <p>تسجيل الوارد والمنصرف والتسويات.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 7h13l-4-4"/>
+              <path d="M20 7l-4 4"/>
+              <path d="M17 17H4l4 4"/>
+              <path d="M4 17l4-4"/>
+            </svg>
+          </span>
+          <h3>سجل حركة المخزون</h3>
+          <p>سيُبنى هنا سجل العمليات مع تتبع الكميات قبل الحركة وبعدها.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <!-- الصلاحية -->
+      <section class="page-section" id="page-expiry" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>الصلاحية والتنبيهات</h3>
+            <p>متابعة تشغيلات الأدوية وتواريخ انتهائها.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 2"/>
+            </svg>
+          </span>
+          <h3>متابعة التشغيلات</h3>
+          <p>سيُبنى هنا نظام تنبيهات الصلاحية والمخزون المنخفض.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <!-- الجرد -->
+      <section class="page-section" id="page-stocktaking" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>الجرد الفعلي</h3>
+            <p>مطابقة الرصيد المسجل مع الكميات الموجودة فعلياً.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="3" width="16" height="18" rx="2"/>
+              <path d="m8 9 2 2 4-4"/>
+              <path d="M15 10h2"/>
+            </svg>
+          </span>
+          <h3>جلسات الجرد</h3>
+          <p>سيُبنى هنا تسجيل العد ومراجعة الفروقات قبل اعتماد التسويات.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <!-- التقارير -->
+      <section class="page-section" id="page-reports" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>التقارير</h3>
+            <p>ملخصات المخزون والحركات والجرد.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 20V10"/>
+              <path d="M10 20V4"/>
+              <path d="M16 20v-7"/>
+              <path d="M22 20H2"/>
+            </svg>
+          </span>
+          <h3>تقارير الصيدلية</h3>
+          <p>سيُبنى هنا إعداد التقارير وطباعتها وحفظها بصيغة PDF.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <!-- النسخ الاحتياطي -->
+      <section class="page-section" id="page-backup" hidden>
+        <div class="section-heading">
+          <div>
+            <h3>النسخ الاحتياطي</h3>
+            <p>حماية بياناتك ونقلها بين الأجهزة.</p>
+          </div>
+        </div>
+        <div class="panel placeholder-panel">
+          <span class="placeholder-icon ac-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 16V3"/>
+              <path d="m7 8 5-5 5 5"/>
+              <path d="M5 14v6h14v-6"/>
+            </svg>
+          </span>
+          <h3>النسخ والاستعادة</h3>
+          <p>سيُبنى هنا تصدير البيانات واستيراد النسخ الاحتياطية.</p>
+          <span class="feature-tag">المرحلة التالية</span>
+        </div>
+      </section>
+
+      <footer class="main-footer">
+        <span>Amino Cure Drug Stock</span>
+        <span>معلومة أبسط، حياة أفضل 💜</span>
+      </footer>
+
+    </main>
+  </div>
+</body>
+</html>
