@@ -2401,3 +2401,115 @@ html {
     transition: none;
   }
 }
+
+/* Amino Cure — توحيد ألوان البطاقات وإزالة الشريط الجانبي */
+
+#page-dashboard .stat-card,
+#page-dashboard .panel,
+#page-dashboard .quick-card,
+#page-dashboard .qa-panel {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-inline-start: 1px solid var(--border) !important;
+  box-shadow: none;
+}
+
+/* إزالة الألوان والزخارف الموجودة على أطراف البطاقات */
+#page-dashboard .stat-card::before,
+#page-dashboard .stat-card::after,
+#page-dashboard .panel::before,
+#page-dashboard .panel::after,
+#page-dashboard .quick-card::before,
+#page-dashboard .quick-card::after,
+#page-dashboard .qa-panel::before,
+#page-dashboard .qa-panel::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* =====================================
+   AMINO CURE — STAT CARDS COLOR SYSTEM
+   6 unique colors • Unified backgrounds
+===================================== */
+
+/* خلفية موحدة لجميع بطاقات الإحصائيات */
+#page-dashboard .stat-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-inline-start: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* إزالة الشرائط والزخارف الملونة */
+#page-dashboard .stat-card::before,
+#page-dashboard .stat-card::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* 1 — إجمالي الأصناف: بنفسجي */
+#page-dashboard .stats-grid .stat-card.purple-stat {
+  --stat-accent: #B49AFF;
+}
+
+/* 2 — المتوفر: أخضر نعناعي */
+#page-dashboard .stats-grid .stat-card.green-stat {
+  --stat-accent: #55D6A5;
+}
+
+/* 3 — قرب انتهاء الصلاحية: ذهبي */
+#page-dashboard .stats-grid .stat-card.orange-stat {
+  --stat-accent: #F4C16E;
+}
+
+/* 4 — المنتهي: مرجاني */
+#page-dashboard .stats-grid .stat-card.red-stat {
+  --stat-accent: #FF8997;
+}
+
+/* 5 — رصيد صفر: أزرق سماوي */
+#page-dashboard #extra-stats .stat-card.orange-stat {
+  --stat-accent: #67C9F0;
+}
+
+/* 6 — البطاقة المتبقية: وردي بنفسجي */
+#page-dashboard #extra-stats .stat-card.purple-stat {
+  --stat-accent: #E6A6E8;
+}
+
+/* تطبيق لون البطاقة على الرقم والأيقونة */
+#page-dashboard .stat-card .stat-icon {
+  color: var(--stat-accent, var(--purple)) !important;
+  background: color-mix(
+    in srgb,
+    var(--stat-accent, var(--purple)) 13%,
+    var(--surface)
+  ) !important;
+  border-color: transparent !important;
+}
+
+#page-dashboard .stat-card > strong {
+  color: var(--stat-accent, var(--purple)) !important;
+}
+
+#page-dashboard .stat-card .stat-top > span:first-child {
+  color: var(--text);
+}
+
+/* حركة خفيفة عند المرور */
+#page-dashboard .stat-card {
+  transition: transform .2s ease, border-color .2s ease;
+}
+
+#page-dashboard .stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--stat-accent, var(--border)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-dashboard .stat-card {
+    transition: none;
+  }
+}
