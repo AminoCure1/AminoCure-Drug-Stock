@@ -1,24 +1,37 @@
 'use strict';
-const CACHE = 'amino-drug-stock-v3';
+const CACHE = 'amino-drug-stock-v4';
 const FILES = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './views.js',
+  './guide.js',
   './database.js',
   './inventory.js',
   './reports.js',
+  './barcode.js',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png',
+  './icon-512.png'
+];
+
+// ملفات اختيارية: لو غير موجودة لا يفشل التثبيت
+const OPTIONAL = [
   './ameen.png',
-  'barcode.js',
- 'html5-qrcode.min.js'
+  './html5-qrcode.min.js'
 ];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) {
+      return c.addAll(FILES).then(function () {
+        return Promise.all(OPTIONAL.map(function (f) {
+          return c.add(f).catch(function () { /* تجاهل */ });
+        }));
+      });
+    })
+  );
   self.skipWaiting();
 });
 
