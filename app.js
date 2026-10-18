@@ -1029,7 +1029,11 @@ td.neg{color:var(--red)}
 .fab-wrap{position:fixed;left:14px;bottom:18px;z-index:1500;display:flex;flex-direction:column;gap:10px}
 .fab{width:44px;height:44px;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--surface-2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-@media print{.fab-wrap{display:none!important}}`;
+@media print{.fab-wrap{display:none!important}}@media(max-width:520px){
+  #ac-userbar{flex-wrap:wrap}
+  #ac-userbar .theme-toggle{padding:6px 8px;font-size:12px}
+  .top-actions{gap:5px}
+}`;
 
   document.head.appendChild(st);
 }
@@ -1346,7 +1350,8 @@ td.neg{color:var(--red)}
         'inventory.js',
         'reports.js',
         'views.js',
-        'guide.js'
+        'guide.js',
+        'barcode.js'
       ]) {
         await loadScript(f);
       }
@@ -1356,4 +1361,324 @@ td.neg{color:var(--red)}
       APP.fatal(e.message || String(e));
     }
   })();
+})();
+/* ===== أصوات التطبيق (كتلة واحدة مستقلة) ===== */
+(function () {
+  if (window.__acSounds) return;
+  window.__acSounds = true;
+
+  let ctx = null;
+
+  function on() {
+    try { return localStorage.getItem('ac-sound') !== 'off'; } catch (e) { return true; }
+  }
+
+  function tone(f, s, d, type, v) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    const t = ctx.currentTime + s;
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start(t);
+    o.stop(t + d + 0.02);
+  }
+
+  const SND = {
+    click:   [[700, 0, 0.05, 'sine', 0.08]],
+    nav:     [[520, 0, 0.06, 'sine', 0.1], [780, 0.05, 0.08, 'sine', 0.1]],
+    open:    [[440, 0, 0.08, 'sine', 0.1], [660, 0.07, 0.1, 'sine', 0.1]],
+    close:   [[660, 0, 0.08, 'sine', 0.1], [440, 0.07, 0.1, 'sine', 0.1]],
+    success: [[523, 0, 0.1, 'sine', 0.12], [659, 0.09, 0.1, 'sine', 0.12], [784, 0.18, 0.16, 'sine', 0.12]],
+    error:   [[220, 0, 0.15, 'square', 0.07], [165, 0.14, 0.2, 'square', 0.07]],
+    beep:    [[1400, 0, 0.09, 'square', 0.06]],
+    miss:    [[300, 0, 0.12, 'square', 0.07], [220, 0.12, 0.18, 'square', 0.07]]
+  };
+
+  function play(name) {
+    if (!on()) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!ctx) ctx = new AC();
+      if (ctx.state === 'suspended') ctx.resume();
+      (SND[name] || []).forEach(function (n) { tone(n[0], n[1], n[2], n[3], n[4]); });
+    } catch (e) { /* ignore */ }
+  }
+  window.acSound = play;
+
+  /* نقر الأزرار والتنقل */
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest('button, .item, .stat-card, .nav-link');
+    if (!el || el.disabled || el.id === 'btn-sound2') return;
+    play(el.dataset.page ? 'nav' : 'click');
+  }, true);
+
+  /* باركود: مسجل = بيب، غير مسجل = رفض */
+  document.addEventListener('app-barcode', function (e) {
+    play(e.detail && e.detail.product ? 'beep' : 'miss');
+  });
+
+  /* انتظار عناصر الصفحة ثم ربط النوافذ والرسائل وزر الكتم */
+  let tries = 0;
+  const wait = setInterval(function () {
+    const modal = document.getElementById('modal');
+    const toasts = document.getElementById('toasts');
+    const top = document.querySelector('.top-actions');
+
+    if (modal && toasts && top) {
+      clearInterval(wait);
+
+      /* فتح وإغلاق النوافذ */
+      let wasOpen = !modal.hidden;
+      new MutationObserver(function () {
+        const open = !modal.hidden;
+        if (open !== wasOpen) { play(open ? 'open' : 'close'); wasOpen = open; }
+      }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
+
+      /* رسائل النجاح والخطأ */
+      new MutationObserver(function (list) {
+        list.forEach(function (m) {
+          m.addedNodes.forEach(function (n) {
+            if (n.classList && n.classList.contains('toast')) {
+              play(n.classList.contains('err') ? 'error' : 'success');
+            }
+          });
+        });
+      }).observe(toasts, { childList: true });
+
+      /* زر الكتم */
+      const b = document.createElement('button');
+      b.id = 'btn-sound2';
+      b.type = 'button';
+      b.className = 'theme-toggle';
+      b.setAttribute('aria-label', 'الصوت');
+      b.textContent = on() ? '🔊' : '🔇';
+      b.addEventListener('click', function () {
+        try { localStorage.setItem('ac-sound', on() ? 'off' : 'on'); } catch (e) { /* ignore */ }
+        b.textContent = on() ? '🔊' : '🔇';
+        play('click');
+      });
+      top.insertBefore(b, top.firstChild);
+    } else if (++tries > 100) {
+      clearInterval(wait);
+    }
+  }, 200);
+})();
+/* ===== نظام الدخول والمستخدمين (كتلة واحدة مستقلة) ===== */
+(function () {
+  if (window.__acAuth) return;
+  window.__acAuth = true;
+
+  const KEY = 'ac-users', SES = 'ac-session', IDLE = 10 * 60 * 1000;
+  let cur = null, idleT = null, fails = 0, lockUntil = 0;
+
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function save(u) { localStorage.setItem(KEY, JSON.stringify(u)); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function b64(buf) { return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); }
+
+  async function hash(pw, saltB64) {
+    if (!window.crypto || !crypto.subtle) throw new Error('المتصفح لا يدعم التشفير. افتح التطبيق عبر رابط https.');
+    const salt = saltB64 ? Uint8Array.from(atob(saltB64), function (c) { return c.charCodeAt(0); }) : crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt, iterations: 150000, hash: 'SHA-256' }, key, 256);
+    return { salt: b64(salt), hash: b64(bits) };
+  }
+
+  /* ---------- الشكل ---------- */
+  const st = document.createElement('style');
+  st.textContent = `
+#ac-auth{position:fixed;inset:0;z-index:5000;background:var(--bg,#0f0f1a);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;direction:rtl}
+.ac-box{background:var(--surface,#1a1a2e);color:var(--text,#fff);border:1px solid var(--border,#333);border-radius:16px;width:100%;max-width:380px;padding:20px}
+.ac-box h2{margin:0 0 14px;font-size:18px;text-align:center}
+.ac-box label{display:block;font-size:12px;color:var(--muted,#aaa);margin-bottom:10px}
+.ac-box input,.ac-box select{display:block;width:100%;margin-top:4px;background:var(--bg,#0f0f1a);color:var(--text,#fff);border:1px solid var(--border,#333);border-radius:10px;padding:10px;font-size:14px;box-sizing:border-box}
+.ac-b{width:100%;margin-top:6px;padding:10px;border:0;border-radius:10px;background:var(--purple,#a78bfa);color:#14102a;font-weight:700;font-size:14px;cursor:pointer}
+.ac-b.s{width:auto;padding:5px 10px;font-size:12px;background:var(--surface-2,#26263d);color:var(--text,#fff);border:1px solid var(--border,#333);margin:0 2px}
+.ac-b.d{background:var(--red,#f87171);color:#fff;border:0}
+.ac-err{color:var(--red,#f87171);font-size:12px;min-height:16px;margin:4px 0}
+.ac-note{font-size:11px;color:var(--muted,#aaa);margin-top:10px;line-height:1.7}
+.ac-t{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.ac-t td,.ac-t th{padding:6px;border-bottom:1px solid var(--border,#333);text-align:right}
+#ac-userbar{display:flex;align-items:center;gap:6px}
+#ac-userbar .theme-toggle{white-space:nowrap}`;
+  document.head.appendChild(st);
+
+  const ov = document.createElement('div');
+  ov.id = 'ac-auth';
+  ov.hidden = true;
+  function mount() { document.body.appendChild(ov); }
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  function screen(html) { ov.hidden = false; ov.innerHTML = '<div class="ac-box">' + html + '</div>'; }
+  function err(m) { const e = document.getElementById('ac-e'); if (e) e.textContent = m; }
+
+  /* ---------- أول تشغيل: إنشاء المدير ---------- */
+  function showSetup() {
+    screen('<h2>إعداد أول حساب (المدير)</h2>' +
+      '<form id="ac-f"><label>الاسم الظاهر<input name="n" required></label>' +
+      '<label>اسم المستخدم<input name="u" autocomplete="username" required></label>' +
+      '<label>كلمة السر (6 أحرف على الأقل)<input name="p" type="password" autocomplete="new-password" required></label>' +
+      '<label>تأكيد كلمة السر<input name="p2" type="password" autocomplete="new-password" required></label>' +
+      '<div class="ac-err" id="ac-e"></div><button class="ac-b">إنشاء الحساب</button></form>' +
+      '<p class="ac-note">هذا الحساب مدير ويضيف بقية الصيادلة. احفظ كلمة السر جيداً.</p>');
+    document.getElementById('ac-f').onsubmit = async function (e) {
+      e.preventDefault();
+      const f = e.target, n = f.n.value.trim(), u = f.u.value.trim().toLowerCase();
+      if (!n || !u) return err('أكمل الحقول');
+      if (f.p.value.length < 6) return err('كلمة السر أقل من 6 أحرف');
+      if (f.p.value !== f.p2.value) return err('كلمتا السر غير متطابقتين');
+      try {
+        const h = await hash(f.p.value);
+        save([{ username: u, name: n, role: 'admin', salt: h.salt, hash: h.hash }]);
+        enter(load()[0]);
+      } catch (x) { err(x.message); }
+    };
+  }
+
+  /* ---------- تسجيل الدخول ---------- */
+  function showLogin() {
+    if (!load().length) return showSetup();
+    screen('<h2>تسجيل الدخول</h2>' +
+      '<form id="ac-f"><label>اسم المستخدم<input name="u" autocomplete="username" required></label>' +
+      '<label>كلمة السر<input name="p" type="password" autocomplete="current-password" required></label>' +
+      '<div class="ac-err" id="ac-e"></div><button class="ac-b">دخول</button></form>' +
+      '<p class="ac-note">نسيت كلمة السر؟ اطلب من المدير إعادة تعيينها.</p>');
+    document.getElementById('ac-f').onsubmit = async function (e) {
+      e.preventDefault();
+      const f = e.target;
+      if (Date.now() < lockUntil) return err('محاولات كثيرة. انتظر ' + Math.ceil((lockUntil - Date.now()) / 1000) + ' ثانية');
+      const u = load().find(function (x) { return x.username === f.u.value.trim().toLowerCase(); });
+      try {
+        const h = u ? await hash(f.p.value, u.salt) : null;
+        if (!u || h.hash !== u.hash) {
+          if (++fails >= 5) { lockUntil = Date.now() + 30000; fails = 0; }
+          return err('اسم المستخدم أو كلمة السر غير صحيحة');
+        }
+        fails = 0;
+        enter(u);
+      } catch (x) { err(x.message); }
+    };
+  }
+
+  /* ---------- بعد الدخول ---------- */
+  function enter(u) {
+    cur = u;
+    try { sessionStorage.setItem(SES, u.username); } catch (e) { /* ignore */ }
+    ov.hidden = true;
+    ov.innerHTML = '';
+    bar();
+    resetIdle();
+  }
+
+  function logout() {
+    cur = null;
+    try { sessionStorage.removeItem(SES); } catch (e) { /* ignore */ }
+    clearTimeout(idleT);
+    const b = document.getElementById('ac-userbar');
+    if (b) b.remove();
+    showLogin();
+  }
+
+  function resetIdle() {
+    clearTimeout(idleT);
+    if (cur) idleT = setTimeout(logout, IDLE);
+  }
+  ['click', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (cur) resetIdle(); }, { passive: true, capture: true });
+  });
+
+  function bar() {
+    let t = 0;
+    const w = setInterval(function () {
+      const top = document.querySelector('.top-actions');
+      if (top || ++t > 50) {
+        clearInterval(w);
+        if (!top || !cur || document.getElementById('ac-userbar')) return;
+        const d = document.createElement('div');
+        d.id = 'ac-userbar';
+        d.innerHTML = '<span class="net-chip on">👤 ' + esc(cur.name) + '</span>' +
+          (cur.role === 'admin' ? '<button class="theme-toggle" id="ac-users" type="button">👥 المستخدمون</button>' : '') +
+          '<button class="theme-toggle" id="ac-out" type="button">خروج</button>';
+        top.insertBefore(d, top.firstChild);
+        document.getElementById('ac-out').onclick = logout;
+        const um = document.getElementById('ac-users');
+        if (um) um.onclick = manage;
+      }
+    }, 200);
+  }
+
+  /* ---------- إدارة المستخدمين (للمدير) ---------- */
+  function manage() {
+    const users = load();
+    const m = document.createElement('div');
+    m.id = 'ac-auth';
+    m.style.zIndex = 5100;
+    m.innerHTML = '<div class="ac-box" style="max-width:520px"><h2>المستخدمون</h2>' +
+      '<table class="ac-t"><tbody>' + users.map(function (u) {
+        return '<tr><td>' + esc(u.name) + '<br><small dir="ltr">' + esc(u.username) + '</small></td>' +
+          '<td>' + (u.role === 'admin' ? 'مدير' : 'صيدلي') + '</td><td>' +
+          '<button class="ac-b s" data-r="' + esc(u.username) + '">كلمة سر جديدة</button>' +
+          (u.username !== cur.username ? '<button class="ac-b s d" data-d="' + esc(u.username) + '">حذف</button>' : '') +
+          '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<h2 style="font-size:14px;margin-top:14px">إضافة مستخدم</h2>' +
+      '<form id="ac-add"><label>الاسم الظاهر<input name="n" required></label>' +
+      '<label>اسم المستخدم<input name="u" required></label>' +
+      '<label>كلمة السر<input name="p" type="password" required></label>' +
+      '<label>الصلاحية<select name="r"><option value="user">صيدلي</option><option value="admin">مدير</option></select></label>' +
+      '<div class="ac-err" id="ac-e"></div><button class="ac-b">إضافة</button></form>' +
+      '<button class="ac-b s" id="ac-x" style="margin-top:10px">إغلاق</button></div>';
+    document.body.appendChild(m);
+    m.querySelector('#ac-x').onclick = function () { m.remove(); };
+
+    m.querySelector('#ac-add').onsubmit = async function (e) {
+      e.preventDefault();
+      const f = e.target, u = f.u.value.trim().toLowerCase(), n = f.n.value.trim();
+      if (!u || !n) return err('أكمل الحقول');
+      if (f.p.value.length < 6) return err('كلمة السر أقل من 6 أحرف');
+      if (load().some(function (x) { return x.username === u; })) return err('اسم المستخدم موجود');
+      const h = await hash(f.p.value);
+      const all = load();
+      all.push({ username: u, name: n, role: f.r.value, salt: h.salt, hash: h.hash });
+      save(all);
+      m.remove();
+      manage();
+    };
+
+    m.addEventListener('click', async function (e) {
+      const r = e.target.dataset.r, d = e.target.dataset.d;
+      if (r) {
+        const p = prompt('كلمة السر الجديدة (6 أحرف على الأقل):');
+        if (!p) return;
+        if (p.length < 6) return alert('أقل من 6 أحرف');
+        const h = await hash(p), all = load(), u = all.find(function (x) { return x.username === r; });
+        u.salt = h.salt; u.hash = h.hash;
+        save(all);
+        alert('تم تغيير كلمة السر');
+      }
+      if (d && confirm('حذف هذا المستخدم؟')) {
+        let all = load().filter(function (x) { return x.username !== d; });
+        if (!all.some(function (x) { return x.role === 'admin'; })) return alert('لازم يبقى مدير واحد على الأقل');
+        save(all);
+        m.remove();
+        manage();
+      }
+    });
+  }
+
+  /* ---------- البداية ---------- */
+  let sess = null;
+  try { sess = sessionStorage.getItem(SES); } catch (e) { /* ignore */ }
+  const found = sess && load().find(function (x) { return x.username === sess; });
+  if (found) { cur = found; ov.hidden = true; bar(); resetIdle(); }
+  else {
+    ov.hidden = false;
+    if (document.body) showLogin(); else document.addEventListener('DOMContentLoaded', showLogin);
+  }
 })();
