@@ -1682,3 +1682,74 @@ td.neg{color:var(--red)}
     if (document.body) showLogin(); else document.addEventListener('DOMContentLoaded', showLogin);
   }
 })();
+/* ===== شريط دعوة تثبيت التطبيق ===== */
+(function () {
+  if (window.__acInstall) return;
+  window.__acInstall = true;
+
+  const DISMISS = 'ac-install-dismissed';
+  let evt = null;
+
+  // لا يظهر لو مثبت أصلاً
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) return;
+
+  // لا يظهر لو رفضه المستخدم خلال آخر 3 أيام
+  try {
+    const t = Number(localStorage.getItem(DISMISS) || 0);
+    if (Date.now() - t < 3 * 24 * 3600 * 1000) return;
+  } catch (e) { /* ignore */ }
+
+  const st = document.createElement('style');
+  st.textContent = `
+#ac-inst{position:fixed;left:10px;right:10px;bottom:12px;z-index:4500;display:flex;align-items:center;gap:10px;background:var(--surface,#1a1a2e);color:var(--text,#fff);border:1px solid var(--purple,#a78bfa);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);direction:rtl;max-width:520px;margin:0 auto}
+#ac-inst b{display:block;font-size:14px}
+#ac-inst small{display:block;color:var(--muted,#aaa);font-size:11px;margin-top:2px;line-height:1.5}
+#ac-inst .t{flex:1;min-width:0}
+#ac-inst button{border:0;border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer}
+#ac-inst .go{background:var(--purple,#a78bfa);color:#14102a;font-weight:700}
+#ac-inst .no{background:transparent;color:var(--muted,#aaa);padding:9px 8px}`;
+  document.head.appendChild(st);
+
+  function remove() {
+    const el = document.getElementById('ac-inst');
+    if (el) el.remove();
+  }
+
+  function dismiss() {
+    try { localStorage.setItem(DISMISS, String(Date.now())); } catch (e) { /* ignore */ }
+    remove();
+  }
+
+  function show(ios) {
+    if (document.getElementById('ac-inst')) return;
+    const d = document.createElement('div');
+    d.id = 'ac-inst';
+    d.innerHTML = '<div class="t"><b>ثبّت التطبيق على جهازك</b><small>' +
+      (ios ? 'اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»' : 'يفتح أسرع ويعمل بدون إنترنت') +
+      '</small></div>' +
+      (ios ? '' : '<button class="go" type="button">تثبيت</button>') +
+      '<button class="no" type="button">لاحقاً</button>';
+    document.body.appendChild(d);
+    const go = d.querySelector('.go');
+    if (go) go.onclick = async function () {
+      if (!evt) return;
+      evt.prompt();
+      try { await evt.userChoice; } catch (e) { /* ignore */ }
+      evt = null;
+      remove();
+    };
+    d.querySelector('.no').onclick = dismiss;
+  }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    evt = e;
+    setTimeout(function () { show(false); }, 1500);
+  });
+
+  window.addEventListener('appinstalled', remove);
+
+  // آيفون: لا يوجد حدث تثبيت، فنعرض تعليمات فقط
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (ios) setTimeout(function () { show(true); }, 3000);
+})();
