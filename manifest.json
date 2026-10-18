@@ -1,13 +1,14 @@
 {
+  "id": "./",
   "name": "Amino Cure Drug Stock",
   "short_name": "Drug Stock",
   "description": "تطبيق إدارة مخزون الأدوية - Amino Cure",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "./index.html",
+  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#14102A",
   "theme_color": "#14102A",
   "icons": [
