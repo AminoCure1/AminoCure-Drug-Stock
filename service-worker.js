@@ -1,5 +1,5 @@
 'use strict';
-const CACHE = 'amino-drug-stock-v5';
+const CACHE = 'amino-drug-stock-v6';
 const FILES = [
   './',
   './index.html',
